@@ -27,8 +27,8 @@ def get_path(match, fileContent):
     if match:
         path =  match.group().replace("\"","")
     
-    pattern = r'HttpPost|HttpGet'
-    matchMethod = re.search(pattern, line)
+    
+    matchMethod = re.search(METHOD_REGEX, line)
     if matchMethod:
         method =  matchMethod.group().replace("Http","")
 
@@ -57,9 +57,11 @@ def get_class_decaration(match, fileContent, line_end):
     match = re.search(pattern, nextLine)
     if match:
         return match.group().replace("class ", "").replace("Controller", "")
+    return ""
 
 
-
+METHOD_REGEX = 'HttpPost|HttpGet'
+ROUTE_REGEX = "\[Route\("
 def search_for_string_in_files(directory_path):
     path = ""
     functionDeclaration = ""
@@ -76,25 +78,24 @@ def search_for_string_in_files(directory_path):
         with open(file, 'r') as f:
 
             fileContent = f.read()
-            methodRegex = 'HttpPost|HttpGet'
-            if re.search(methodRegex, fileContent):
-                for match in re.finditer(methodRegex, fileContent):
-                    path, line_end, method = get_path(match, fileContent)
-                    functionDeclaration = get_function_decaration(match, fileContent, line_end)
-                
-                routeRegex = "\[Route\("
-                if re.search(routeRegex, fileContent):
-                    for match in re.finditer(routeRegex, fileContent):
-                        _path2, line_end, _method2 = get_path(match, fileContent)
-                        classDeclaration = get_class_decaration(match, fileContent, line_end)
-
-        
-                print(f"\t[{method}(\"{classDeclaration + path}\")]\n"+
-                        f"\tTask<object> {functionDeclaration};\n")
+             
+            if re.search(ROUTE_REGEX, fileContent):
+                for match in re.finditer(ROUTE_REGEX, fileContent):
+                    _path2, line_end, _method2 = get_path(match, fileContent)
+                    classDeclaration = get_class_decaration(match, fileContent, line_end)
+                    classDeclaration = _path2.replace("[controller]", classDeclaration)
+                    
+                    if re.search(METHOD_REGEX, fileContent):
+                        for match in re.finditer(METHOD_REGEX, fileContent):
+                            path, line_end, method = get_path(match, fileContent)
+                            functionDeclaration = get_function_decaration(match, fileContent, line_end)
+    
+                            print(f"\t[{method}(\"/{classDeclaration}/{path}\")]\n"+
+                                f"\tTask<object> {functionDeclaration};\n")
 
 
 directory_path = sys.argv[1] #"F:\Projets\ProjectName"
 
-print("class IApi {\n")
+print("public interface IApi {\n")
 search_for_string_in_files(directory_path)
 print("}")

@@ -8,3 +8,11 @@ python .\refit.py {your entire file path}
 ## Example:
 python .\refit.py F:\Projects\ProjectName
 
+
+# !!Important!!
+The [Route] annotation need to be on the line above the class definition
+
+## Example:
+[ApiController]
+[Route("api/[controller]")]
+public class StartRoutingController : ControllerBase
